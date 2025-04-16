@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Willow Live Events Player</title>
+    <style>
+        body, html {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            overflow: hidden;
+        }
+        #player-container {
+            width: 100%;
+            height: 100%;
+        }
+        iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+        .loading {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100%;
+            font-family: Arial, sans-serif;
+            font-size: 18px;
+        }
+        .error {
+            color: red;
+            text-align: center;
+            padding: 20px;
+            font-family: Arial, sans-serif;
+        }
+    </style>
+</head>
+<body>
+    <div id="player-container">
+        <div class="loading" id="loading">Loading live match data...</div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const container = document.getElementById('player-container');
+            const loadingElement = document.getElementById('loading');
+            
+            fetch('https://raw.githubusercontent.com/drmlive/willow-live-events/main/willow.json')
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    // Find matches with "Indian Premier League 2025" in the title
+                    const iplMatches = data.matches.filter(match => 
+                        match.title.includes('Indian Premier League 2025'));
+                    
+                    if (iplMatches.length === 0) {
+                        throw new Error('No Indian Premier League 2025 matches found');
+                    }
+                    
+                    // Get the first match (you can modify this logic if there are multiple matches)
+                    const match = iplMatches[0];
+                    
+                    // Extract the first URL and key
+                    const firstUrl = match.playback_data.urls[0].url;
+                    const key = match.playback_data.keys[0];
+                    
+                    // Create the iframe with the player URL
+                    const iframe = document.createElement('iframe');
+                    iframe.src = `https://teamroplry2.pages.dev/?url=${encodeURIComponent(firstUrl)}&key=${encodeURIComponent(key)}`;
+                    
+                    // Replace loading message with iframe
+                    container.innerHTML = '';
+                    container.appendChild(iframe);
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    loadingElement.className = 'error';
+                    loadingElement.textContent = `Error: ${error.message}`;
+                });
+        });
+    </script>
+</body>
+</html>
